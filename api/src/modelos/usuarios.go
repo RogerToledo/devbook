@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/badoux/checkmail"
 )
 
 type Usuario struct {
@@ -15,8 +17,8 @@ type Usuario struct {
 	CriadoEm time.Time `json:"CriadoEm,omitempty"`
 }
 
-func (usuario *Usuario) Prepare() error {
-	if erro := usuario.validar(); erro != nil {
+func (usuario *Usuario) Prepare(etapa string) error {
+	if erro := usuario.validar(etapa); erro != nil {
 		return erro
 	}
 
@@ -25,7 +27,7 @@ func (usuario *Usuario) Prepare() error {
 	return nil
 }
 
-func (usuario *Usuario) validar() error {
+func (usuario *Usuario) validar(etapa string) error {
 	if usuario.Nome == "" {
 		return errors.New("o nome é obrigatório!!")
 	}
@@ -37,8 +39,11 @@ func (usuario *Usuario) validar() error {
 	if usuario.Email == "" {
 		return errors.New("o e-mail é obrigatório!!")
 	}
+	if erro := checkmail.ValidateFormat(usuario.Email); erro != nil {
+		return errors.New("Formato do e-mail é invalido")
+	}
 
-	if usuario.Nome == "" {
+	if usuario.Senha == "" && etapa == "cadastro"{
 		return errors.New("o senha é obrigatório!!")
 	}
 
