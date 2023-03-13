@@ -10,7 +10,7 @@ import (
 )
 
 type Usuario struct {
-	Id       uint64    `json:"id,omitempty"`
+	ID       uint64    `json:"id,omitempty"`
 	Nome     string    `json:"nome,omitempty"`
 	Nick     string    `json:"nick,omitempty"`
 	Email    string    `json:"email,omitempty"`
@@ -30,22 +30,22 @@ func (usuario *Usuario) Prepare(etapa string) error {
 
 func (usuario *Usuario) validar(etapa string) error {
 	if usuario.Nome == "" {
-		return errors.New("o nome é obrigatório!!")
+		return errors.New("o nome é obrigatório")
 	}
 
 	if usuario.Nick == "" {
-		return errors.New("o nick é obrigatório!!")
+		return errors.New("o nick é obrigatório")
 	}
 
 	if usuario.Email == "" {
-		return errors.New("o e-mail é obrigatório!!")
+		return errors.New("o e-mail é obrigatório")
 	}
 	if erro := checkmail.ValidateFormat(usuario.Email); erro != nil {
-		return errors.New("Formato do e-mail é invalido")
+		return errors.New("formato do e-mail é invalido")
 	}
 
 	if usuario.Senha == "" && etapa == "cadastro"{
-		return errors.New("o senha é obrigatório!!")
+		return errors.New("o senha é obrigatório")
 	}
 
 	return nil

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"api/src/autenticacao"
 	"api/src/db"
 	"api/src/modelos"
 	"api/src/repositorios"
@@ -10,7 +11,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -41,7 +41,7 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
-	usuario.Id, erro = repositorio.Criar(usuario)
+	usuario.ID, erro = repositorio.Criar(usuario)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -51,7 +51,7 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 		ID   int32  `json:"id"`
 		Nome string `json:"nome"`
 	}{
-		ID:   int32(usuario.Id),
+		ID:   int32(usuario.ID),
 		Nome: usuario.Nome,
 	}
 
@@ -59,13 +59,6 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 }
 
 func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
-	nomeOuNick := strings.ToLower(r.URL.Query().Get("usuario"))
-
-	if nomeOuNick == "" {
-		respostas.Erro(w, http.StatusBadRequest, errors.New("nome ou nick devem ser informado"))
-		return
-	}
-
 	db, erro := db.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -73,9 +66,10 @@ func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
-	usuarios, erro := repositorio.Buscar(nomeOuNick)
+	usuarios, erro := repositorio.Buscar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
 	}
 
 	respostas.Json(w, http.StatusOK, usuarios)
@@ -105,7 +99,7 @@ func BuscarUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if usuario.Id == 0 && usuario.Nome == "" {
+	if usuario.ID == 0 && usuario.Nome == "" {
 		respostas.Erro(w, http.StatusOK, errors.New("Usuario não encontrado"))
 		return
 	}
@@ -119,6 +113,18 @@ func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametro["id"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	if ID != IDToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível atualizar outro usuário"))
+		return
 	}
 
 	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
@@ -161,6 +167,17 @@ func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 	}
 
+	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	if ID != IDToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível deletar outro usuário"))
+		return
+	}
+
 	db, erro := db.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -182,7 +199,8 @@ func SeguirUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
+	//IDToken, erro := autenticacao.ExtrairUsuarioID(r)
+	IDToken := uint64(2)
 	if erro != nil {
 		respostas.Erro(w, http.StatusForbidden, erro)
 		return

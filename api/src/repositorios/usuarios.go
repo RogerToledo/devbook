@@ -3,7 +3,6 @@ package repositorios
 import (
 	"api/src/modelos"
 	"database/sql"
-	"fmt"
 )
 
 type usuarios struct {
@@ -36,12 +35,9 @@ func (repositorio usuarios) Criar(usuario modelos.Usuario) (uint64, error) {
 	return uint64(ultimoId), nil
 }
 
-func (repositorio usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error) {
-	nomeOuNick = fmt.Sprintf("%%%s%%", nomeOuNick)
-
+func (repositorio usuarios) Buscar() ([]modelos.Usuario, error) {
 	linhas, erro := repositorio.db.Query(
-		"select id, nome, nick, email, criadoEm from usuarios where nome like ? or nick like ?",
-		nomeOuNick, nomeOuNick,
+		"select id, nome, nick, email, criadoEm from usuarios",
 	)
 
 	if erro != nil {
@@ -54,7 +50,7 @@ func (repositorio usuarios) Buscar(nomeOuNick string) ([]modelos.Usuario, error)
 		var usuario modelos.Usuario
 
 		if erro = linhas.Scan(
-			&usuario.Id,
+			&usuario.ID,
 			&usuario.Nome,
 			&usuario.Nick,
 			&usuario.Email,
@@ -80,7 +76,7 @@ func (repositorio usuarios) BuscarPorId(id uint64) (modelos.Usuario, error) {
 
 	if linhas.Next() {
 		if erro = linhas.Scan(
-			&usuario.Id,
+			&usuario.ID,
 			&usuario.Nome,
 			&usuario.Nick,
 			&usuario.Email,
@@ -104,7 +100,7 @@ func (repositorio usuarios) BuscarPorEmail (email string) (modelos.Usuario, erro
 	
 	if linha.Next() {
 		if erro := linha.Scan(
-			&usuario.Id,
+			&usuario.ID,
 			&usuario.Senha,
 		); erro != nil {
 			return modelos.Usuario{}, erro
