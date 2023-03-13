@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"api/src/autenticacao"
 	"api/src/db"
 	"api/src/modelos"
 	"api/src/repositorios"
@@ -107,7 +106,7 @@ func BuscarUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if usuario.Id == 0 && usuario.Nome == "" {
-		respostas.Erro(w, http.StatusOK, errors.New("usuario não encontrado"))
+		respostas.Erro(w, http.StatusOK, errors.New("Usuario não encontrado"))
 		return
 	}
 
@@ -120,18 +119,6 @@ func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametro["id"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
-		return
-	}
-
-	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
-	if erro != nil {
-		respostas.Erro(w, http.StatusUnauthorized, erro)
-		return
-	}
-
-	if ID != IDToken {
-		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível atualizar outro usuário"))
-		return
 	}
 
 	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
@@ -172,31 +159,17 @@ func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 	ID, erro := strconv.ParseUint(parametro["id"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
-		return
-	}
-
-	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
-	if erro != nil {
-		respostas.Erro(w, http.StatusUnauthorized, erro)
-		return
-	}
-
-	if ID != IDToken {
-		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível deletar outro usuário"))
-		return
 	}
 
 	db, erro := db.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
 	}
 	defer db.Close()
 
 	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
 	if erro := repositorio.Deletar(ID); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
 	}
 }
 

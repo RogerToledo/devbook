@@ -17,7 +17,7 @@ func TestValidar(t *testing.T) {
 				Nick: "",
 				Email: "",
 			},
-			esperado: "o nome é obrigatório!!",
+			esperado: "O Nome é obrigatório!!",
 		},{
 			descricao: "Deve retornar erro quando Nome está vazio",
 			entregue: Usuario{
@@ -25,7 +25,7 @@ func TestValidar(t *testing.T) {
 				Nick: "Teste",
 				Email: "teste@mail.com",
 			},
-			esperado: "o nome é obrigatório!!",
+			esperado: "O Nome é obrigatório!!",
 		},{
 			descricao: "Deve retornar erro quando Nick está vazio",
 			entregue: Usuario{
@@ -33,7 +33,7 @@ func TestValidar(t *testing.T) {
 				Nick: "",
 				Email: "teste@mail.com",
 			},
-			esperado: "o nick é obrigatório!!",
+			esperado: "O Nick é obrigatório!!",
 		},{
 			descricao: "Deve retornar erro quando Email está vazio",
 			entregue: Usuario{
@@ -41,14 +41,14 @@ func TestValidar(t *testing.T) {
 				Nick: "Teste",
 				Email: "",
 			},
-			esperado: "o e-mail é obrigatório!!",
+			esperado: "O e-mail é obrigatório!!",
 		},
 	}
 
 	for _, cenario := range cenarios {
 		t.Log(cenario.descricao)
 
-		if erro := cenario.entregue.validar("edicao"); erro.Error() != cenario.esperado {
+		if erro := cenario.entregue.validar(); erro.Error() != cenario.esperado {
 			t.Fatalf("Esperado %v, Entregue %v", cenario.esperado, erro)
 		}
 	}
@@ -94,21 +94,21 @@ func TestFormatar(t *testing.T) {
 	for _, cenario := range cenarios {
 		t.Log(cenario.descricao)
 
-		if cenario.entregue.formatar("edicao"); 
+		if cenario.entregue.formatar(); 
 			cenario.entregue.Nome != usuarioEsperado.Nome &&
 			cenario.entregue.Nick == usuarioEsperado.Nick &&
 			cenario.entregue.Email == usuarioEsperado.Email {
 				t.Fatalf("Esperado %v, Entregue %v", usuarioEsperado.Nome, cenario.entregue.Nome)
 		}
 
-		if cenario.entregue.formatar("edicao"); 
+		if cenario.entregue.formatar(); 
 			cenario.entregue.Nome == usuarioEsperado.Nome &&
 			cenario.entregue.Nick != usuarioEsperado.Nick &&
 			cenario.entregue.Email == usuarioEsperado.Email {
 				t.Fatalf("Esperado %v, Entregue %v", usuarioEsperado.Nick, cenario.entregue.Nick)
 		}
 
-		if cenario.entregue.formatar("edicao"); 
+		if cenario.entregue.formatar(); 
 			cenario.entregue.Nome == usuarioEsperado.Nome &&
 			cenario.entregue.Nick == usuarioEsperado.Nick &&
 			cenario.entregue.Email != usuarioEsperado.Email {
