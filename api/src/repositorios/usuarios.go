@@ -142,3 +142,17 @@ func (repositorio usuarios) Deletar(ID uint64) error {
 
 	return nil
 }
+
+func (repositorio usuarios) Seguir(ID uint64, seguidorID uint64) error {
+	ps, erro := repositorio.db.Prepare("insert ignore into seguidores (usuario_id, seguidor_id) values (?, ?)")
+	if erro != nil {
+		return erro
+	}
+	defer ps.Close()
+
+	if _, erro := ps.Exec(ID, seguidorID); erro != nil {
+		return erro
+	}
+
+	return nil
+}
