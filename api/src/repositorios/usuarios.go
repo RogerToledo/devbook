@@ -139,14 +139,28 @@ func (repositorio usuarios) Deletar(ID uint64) error {
 	return nil
 }
 
-func (repositorio usuarios) Seguir(ID uint64, seguidorID uint64) error {
-	ps, erro := repositorio.db.Prepare("insert ignore into seguidores (usuario_id, seguidor_id) values (?, ?)")
+func (repositorio usuarios) Seguir(seguidorID, ID uint64) error {
+	ps, erro := repositorio.db.Prepare("insert ignore into seguidores (seguidor_id, usuario_id) values (?, ?)")
 	if erro != nil {
 		return erro
 	}
 	defer ps.Close()
 
-	if _, erro := ps.Exec(ID, seguidorID); erro != nil {
+	if _, erro := ps.Exec(seguidorID, ID); erro != nil {
+		return erro
+	}
+
+	return nil
+}
+
+func (repositorio usuarios) PararSeguirUsuario(seguidorID, ID uint64) error {
+	ps, erro := repositorio.db.Prepare("delete ignore from seguidores where usuario_id = ? and seguidor_id = ?")
+	if erro != nil {
+		return erro
+	}
+	defer ps.Close()
+
+	if _, erro := ps.Exec(seguidorID, ID); erro != nil {
 		return erro
 	}
 
