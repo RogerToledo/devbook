@@ -193,21 +193,20 @@ func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 func SeguirUsuario(w http.ResponseWriter, r *http.Request) {
 	parametro := mux.Vars(r)
 
-	seguidorID, erro := strconv.ParseUint(parametro["id"], 10, 64)
+	ID, erro := strconv.ParseUint(parametro["id"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
 
-	//IDToken, erro := autenticacao.ExtrairUsuarioID(r)
-	IDToken := uint64(2)
+	seguidorID, erro := autenticacao.ExtrairUsuarioID(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusForbidden, erro)
 		return
 	}
 
-	if IDToken == seguidorID {
-		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível sevir a si mesmo"))
+	if seguidorID == ID {
+		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível seguir a si mesmo"))
 		return
 	}
 
@@ -220,9 +219,36 @@ func SeguirUsuario(w http.ResponseWriter, r *http.Request) {
 
 	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
 
-	if erro := repositorio.Seguir(IDToken, seguidorID); erro != nil {
+	if erro := repositorio.Seguir(seguidorID, ID); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
+	}
+
+	respostas.Json(w, http.StatusNoContent, nil)
+}
+
+func PararSeguirUsuario(w http.ResponseWriter, r *http.Request) {
+	parametros := mux.Vars(r)
+
+	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+	}
+
+	seguidorID, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusForbidden, erro)
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
+	if erro := repositorio.PararSeguirUsuario(seguidorID, ID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
 	}
 
 	respostas.Json(w, http.StatusNoContent, nil)
