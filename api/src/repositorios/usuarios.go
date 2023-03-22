@@ -39,6 +39,7 @@ func (repositorio usuarios) Buscar() ([]modelos.Usuario, error) {
 	linhas, erro := repositorio.db.Query(
 		"select id, nome, nick, email, criadoEm from usuarios",
 	)
+	defer linhas.Close()
 
 	if erro != nil {
 		return nil, erro
@@ -89,15 +90,15 @@ func (repositorio usuarios) BuscarPorId(id uint64) (modelos.Usuario, error) {
 	return usuario, nil
 }
 
-func (repositorio usuarios) BuscarPorEmail (email string) (modelos.Usuario, error) {
+func (repositorio usuarios) BuscarPorEmail(email string) (modelos.Usuario, error) {
 	linha, erro := repositorio.db.Query("select id, senha from usuarios where email = ?", email)
 	if erro != nil {
 		return modelos.Usuario{}, erro
-	} 
+	}
 	defer linha.Close()
 
 	var usuario modelos.Usuario
-	
+
 	if linha.Next() {
 		if erro := linha.Scan(
 			&usuario.ID,
@@ -165,4 +166,39 @@ func (repositorio usuarios) PararSeguirUsuario(seguidorID, ID uint64) error {
 	}
 
 	return nil
+}
+
+func (repositorio usuarios) ListarSeguindoSeguidores(ID uint64, tipo string) ([]modelos.Usuario, error) {
+	var query string
+	seguidor := "select u.nome, u.nick from seguidores s inner join usuarios u on s.usuario_id = u.id where s.seguidor_id = ?"
+	seguindo := "select u.nome, u.nick from seguidores s inner join usuarios u on s.seguidor_id = u.id where s.usuario_id = ?"
+	
+	if tipo == "listar-seguidores" {
+		query = seguidor
+	} else if tipo == "listar-seguindo" {
+		query = seguindo
+	}
+
+	linhas, erro := repositorio.db.Query(query, ID)
+	if erro != nil {
+		return nil, erro
+	}
+	defer linhas.Close()
+
+	var usuarios []modelos.Usuario
+
+	for linhas.Next() {
+		var usuario modelos.Usuario
+
+		if erro := linhas.Scan(
+			&usuario.Nome,
+			&usuario.Nick,
+		); erro != nil {
+			return nil, erro
+		}
+
+		usuarios = append(usuarios, usuario)
+	}
+
+	return usuarios, nil
 }

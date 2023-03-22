@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -252,4 +253,32 @@ func PararSeguirUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.Json(w, http.StatusNoContent, nil)
+}
+
+func ListarSeguindoSeguidores(w http.ResponseWriter, r *http.Request) {
+	uri := strings.Split(r.RequestURI, "/")
+
+	tipo := uri[2]
+
+	parametros := mux.Vars(r)
+
+	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
+
+	seguidores, erro := repositorio.ListarSeguindoSeguidores(ID, tipo)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+	}
+
+	respostas.Json(w, http.StatusOK, seguidores)
 }

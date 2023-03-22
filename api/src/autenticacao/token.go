@@ -59,10 +59,14 @@ func retornarChave(token *jwt.Token) (interface{}, error) {
 func ExtrairUsuarioID(r *http.Request) (uint64, error) {
 	tokenString := extrairToken(r)
 
+	fmt.Printf("tokenString: %v\n", tokenString)
+
 	token, erro := jwt.Parse(tokenString, retornarChave)
 	if erro != nil {
 		return 0, erro
 	}
+
+	fmt.Printf("toke: %v\n", token)
 
 	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		usuarioID, erro := strconv.ParseUint(fmt.Sprintf("%.0f", permissoes["usuarioID"]), 10, 64)
