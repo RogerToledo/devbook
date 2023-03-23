@@ -6,6 +6,7 @@ import (
 	"api/src/modelos"
 	"api/src/repositorios"
 	"api/src/respostas"
+	"api/src/seguranca"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -131,6 +132,7 @@ func AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
 	}
 
 	var usuario modelos.Usuario
@@ -281,4 +283,73 @@ func ListarSeguindoSeguidores(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.Json(w, http.StatusOK, seguidores)
+}
+
+func AlterarSenha(w http.ResponseWriter, r *http.Request) {
+	corpoRequest, erro := ioutil.ReadAll(r.Body)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	var senhas modelos.AlterarSenha
+	if erro := json.Unmarshal(corpoRequest, &senhas); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if erro := senhas.ValidarSenhas(); erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	parametros := mux.Vars(r)
+
+	ID, erro := strconv.ParseUint(parametros["id"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if ID != IDToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("só é permitido alterar sua própria senha"))
+		return
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
+	senhaSalva, erro := repositorio.BuscarSenha(ID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if erro := seguranca.VerificaSenha(senhaSalva, senhas.Atual); erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, errors.New("senha atual incorreta"))
+		return
+	}
+
+	senhaHash, erro := seguranca.Hash(senhas.Nova)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	if erro := repositorio.AlterarSenha(ID, string(senhaHash)); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.Json(w, http.StatusNoContent, nil)
 }

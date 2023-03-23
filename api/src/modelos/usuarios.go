@@ -1,10 +1,10 @@
 package modelos
 
 import (
+	"api/src/seguranca"
 	"errors"
 	"strings"
 	"time"
-	"api/src/seguranca"
 
 	"github.com/badoux/checkmail"
 )
@@ -44,7 +44,7 @@ func (usuario *Usuario) validar(etapa string) error {
 		return errors.New("formato do e-mail é invalido")
 	}
 
-	if usuario.Senha == "" && etapa == "cadastro"{
+	if usuario.Senha == "" && etapa == "cadastro" {
 		return errors.New("o senha é obrigatório")
 	}
 
@@ -52,8 +52,8 @@ func (usuario *Usuario) validar(etapa string) error {
 }
 
 func (usuario *Usuario) formatar(etapa string) error {
-	usuario.Nome  = strings.TrimSpace(usuario.Nome)
-	usuario.Nick  = strings.TrimSpace(usuario.Nick)
+	usuario.Nome = strings.TrimSpace(usuario.Nome)
+	usuario.Nick = strings.TrimSpace(usuario.Nick)
 	usuario.Email = strings.TrimSpace(usuario.Email)
 
 	if etapa == "cadastro" {
