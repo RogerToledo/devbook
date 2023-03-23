@@ -41,7 +41,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if erro := seguranca.VerificaSenha(usuarioSalvo.Senha, usuario.Senha); erro != nil {
-		respostas.Erro(w, http.StatusUnauthorized, errors.New("Usuário não está autorizado ou a senha está incorreta."))
+		respostas.Erro(w, http.StatusUnauthorized, errors.New("usuário não está autorizado ou a senha está incorreta"))
 		return
 	}
 

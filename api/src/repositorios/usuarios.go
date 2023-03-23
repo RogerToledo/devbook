@@ -172,7 +172,7 @@ func (repositorio usuarios) ListarSeguindoSeguidores(ID uint64, tipo string) ([]
 	var query string
 	seguidor := "select u.nome, u.nick from seguidores s inner join usuarios u on s.usuario_id = u.id where s.seguidor_id = ?"
 	seguindo := "select u.nome, u.nick from seguidores s inner join usuarios u on s.seguidor_id = u.id where s.usuario_id = ?"
-	
+
 	if tipo == "listar-seguidores" {
 		query = seguidor
 	} else if tipo == "listar-seguindo" {
@@ -201,4 +201,36 @@ func (repositorio usuarios) ListarSeguindoSeguidores(ID uint64, tipo string) ([]
 	}
 
 	return usuarios, nil
+}
+
+func (repositorio usuarios) BuscarSenha(ID uint64) (string, error) {
+	linha, erro := repositorio.db.Query("select senha from usuarios where id = ?", ID)
+	if erro != nil {
+		return "", erro
+	}
+	defer linha.Close()
+
+	var usuario modelos.Usuario
+
+	if linha.Next() {
+		if erro := linha.Scan(&usuario.Senha); erro != nil {
+			return "", erro
+		}
+	}
+
+	return usuario.Senha, nil
+}
+
+func (repositorio usuarios) AlterarSenha(ID uint64, senha string) error {
+	ps, erro := repositorio.db.Prepare("update usuarios set senha = ? where id = ?")
+	if erro != nil {
+		return erro
+	}
+	defer ps.Close()
+
+	if _, erro := ps.Exec(senha, ID); erro != nil {
+		return erro
+	}
+
+	return nil
 }

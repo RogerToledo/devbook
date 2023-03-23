@@ -60,4 +60,10 @@ var rotasUsuarios = []Rota{
 		Funcao:             controllers.ListarSeguindoSeguidores,
 		RequerAutenticacao: true,
 	},
+	{
+		Uri:                "/usuarios/alterar-senha/{id}",
+		Metodo:             http.MethodPost,
+		Funcao:             controllers.AlterarSenha,
+		RequerAutenticacao: true,
+	},
 }
