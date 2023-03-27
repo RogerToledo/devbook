@@ -27,7 +27,7 @@ CREATE TABLE publicacoes (
   titulo varchar(50) not null,
   conteudo varchar(300) not null,
   autor_id int not null,
-  autor_nick varchar(30) not null,
+  autor_nick varchar(30),
   curtidas int default 0,
   criadaEm timestamp default current_timestamp,
 

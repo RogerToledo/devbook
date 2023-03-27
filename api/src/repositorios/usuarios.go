@@ -39,11 +39,10 @@ func (repositorio usuarios) Buscar() ([]modelos.Usuario, error) {
 	linhas, erro := repositorio.db.Query(
 		"select id, nome, nick, email, criadoEm from usuarios",
 	)
-	defer linhas.Close()
-
 	if erro != nil {
 		return nil, erro
 	}
+	defer linhas.Close()
 
 	var usuarios []modelos.Usuario
 

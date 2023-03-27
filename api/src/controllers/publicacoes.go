@@ -7,19 +7,14 @@ import (
 	"api/src/repositorios"
 	"api/src/respostas"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 func CriarPublicacoes(w http.ResponseWriter, r *http.Request) {
-	db, erro := db.Conectar()
-	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
-	defer db.Close()
-
 	corpoRequest, erro := ioutil.ReadAll(r.Body)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
@@ -32,40 +27,91 @@ func CriarPublicacoes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if erro := publicacao.Preparar(); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
 	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnauthorized, erro)
 	}
 
-	repoUsuarios := repositorios.NovoRepositorioDeUsuarios(db)
-	usuario, erro := repoUsuarios.BuscarPorId(IDToken)
+	db, erro := db.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
 	}
+	defer db.Close()
 
-	publicacao.AutorID = usuario.ID
-	publicacao.AutorNick = usuario.Nick
-
-	fmt.Println(publicacao)
+	publicacao.AutorID = IDToken
 
 	repoPublicacoes := repositorios.NovoRepositorioDePubicacoes(db)
-	retorno, erro := repoPublicacoes.Criar(publicacao)
+	IDPublicacao, erro := repoPublicacoes.Criar(publicacao)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	respostas.Json(w, http.StatusOK, retorno)
+	publicacao.ID = IDPublicacao
+
+	respostas.Json(w, http.StatusOK, publicacao)
 }
 
 func BuscarPublicacoes(w http.ResponseWriter, r *http.Request) {
+	IDToken, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
 
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDePubicacoes(db)
+	publicacoes, erro := repositorio.BuscarPublicacoes(IDToken)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.Json(w, http.StatusOK, publicacoes)
 }
 
 func BuscarPublicacaoID(w http.ResponseWriter, r *http.Request) {
+	parametro := mux.Vars(r)
 
+	ID, erro := strconv.ParseUint(parametro["publicacaoId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDePubicacoes(db)
+	publicacao, erro := repositorio.BuscarPorId(ID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.Json(w, http.StatusOK, publicacao)	
 }
 
 func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func DeletarPublicacao(w http.ResponseWriter, r *http.Request) {
 
 }
