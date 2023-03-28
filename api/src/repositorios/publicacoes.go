@@ -39,7 +39,11 @@ func (repositorio publicacoes) Criar(publicacao modelos.Publicacao) (uint64, err
 }
 
 func (repositorio *publicacoes) BuscarPorId(ID uint64) (modelos.Publicacao, error) {
-	linha, erro := repositorio.db.Query("select p.titulo, p.conteudo, p.curtidas, p.criadaEm, u.nick from publicacoes p inner join usuarios u on p.autor_id = u.id where p.id = ?",ID)
+	linha, erro := repositorio.db.Query(
+		`select p.id, p.titulo, p.conteudo, p.autor_id, p.curtidas, p.criadaEm, p.autor_id, u.nick 
+		from publicacoes p 
+		inner join usuarios u on p.autor_id = u.id 
+		where p.id = ?`,ID)
 	if erro != nil {
 		return modelos.Publicacao{}, erro
 	}
@@ -48,10 +52,13 @@ func (repositorio *publicacoes) BuscarPorId(ID uint64) (modelos.Publicacao, erro
 	var publicacao modelos.Publicacao
 	if linha.Next() {
 		if erro := linha.Scan(
+			&publicacao.ID,
 			&publicacao.Titulo,
 			&publicacao.Conteudo,
+			&publicacao.AutorID,
 			&publicacao.Curtidas,
 			&publicacao.CriadaEm,
+			&publicacao.AutorID,
 			&publicacao.AutorNick,
 		); erro != nil {
 			return modelos.Publicacao{}, erro
@@ -62,13 +69,14 @@ func (repositorio *publicacoes) BuscarPorId(ID uint64) (modelos.Publicacao, erro
 
 func (repositorio *publicacoes) BuscarPublicacoes(ID uint64) ([]modelos.Publicacao, error) {
 	linhas, erro := repositorio.db.Query(
-		`select p.titulo, p.conteudo, p.curtidas, p.criadaEm, u.nick
+		`select distinct p.id, p.titulo, p.conteudo, p.curtidas, p.criadaEm, p.autor_id, u.nick
 		from publicacoes p
 		inner join usuarios u 
 			on p.autor_id = u.id 
 		inner join seguidores s 
 			on p.autor_id = s.usuario_id 
-		where u.id = ? or s.seguidor_id = ?`, ID, ID,
+		where u.id = ? or s.seguidor_id = ?
+		order by p.titulo`, ID, ID,
 	)
 	if erro != nil {
 		return []modelos.Publicacao{}, erro
@@ -79,10 +87,12 @@ func (repositorio *publicacoes) BuscarPublicacoes(ID uint64) ([]modelos.Publicac
 	for linhas.Next() {
 		var publicacao modelos.Publicacao
 		if erro := linhas.Scan(
+			&publicacao.ID,
 			&publicacao.Titulo,
 			&publicacao.Conteudo,
 			&publicacao.Curtidas,
 			&publicacao.CriadaEm,
+			&publicacao.AutorID,
 			&publicacao.AutorNick,
 		);erro != nil {
 			return []modelos.Publicacao{}, erro
@@ -92,4 +102,18 @@ func (repositorio *publicacoes) BuscarPublicacoes(ID uint64) ([]modelos.Publicac
 	}
 	
 	return publicacoes, nil
+}
+
+func (repositorio *publicacoes) AlterarPublicacao(publicacaoID uint64, publicacao modelos.Publicacao) error {
+	ps, erro := repositorio.db.Prepare("update publicacoes set titulo = ?, conteudo = ? where id = ?")
+	if erro != nil {
+		return erro
+	}
+	defer ps.Close()
+
+	if _, erro := ps.Exec(publicacao.Titulo, publicacao.Conteudo, publicacaoID); erro != nil {
+		return erro 
+	}
+
+	return nil
 }
