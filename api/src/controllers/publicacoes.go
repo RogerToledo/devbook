@@ -109,6 +109,30 @@ func BuscarPublicacaoID(w http.ResponseWriter, r *http.Request) {
 	respostas.Json(w, http.StatusOK, publicacao)	
 }
 
+func BuscarPublicacoesUsuario(w http.ResponseWriter, r *http.Request) {
+	parametro := mux.Vars(r)
+	usuarioID, erro := strconv.ParseUint(parametro["usuarioId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDePubicacoes(db)
+	publicacoes, erro := repositorio.BuscarPorUsuario(usuarioID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.Json(w, http.StatusOK, publicacoes)
+}
+
 func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
 	db, erro := db.Conectar()
 	if erro != nil {
@@ -160,7 +184,7 @@ func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	if erro := repositorio.AlterarPublicacao(publicacaoID, publicacao); erro != nil {
+	if erro := repositorio.Alterar(publicacaoID, publicacao); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
@@ -169,5 +193,115 @@ func AtualizarPublicacao(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeletarPublicacao(w http.ResponseWriter, r *http.Request) {
+	tokenID, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
 
+	parametro := mux.Vars(r)
+	publicacaoID, erro := strconv.ParseUint(parametro["publicacaoId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+
+	repositorio := repositorios.NovoRepositorioDePubicacoes(db)
+	publicacao, erro := repositorio.BuscarPorId(publicacaoID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if tokenID != publicacao.AutorID {
+		respostas.Erro(w, http.StatusForbidden, errors.New("não é possível deletar publicacoes de outros usuário"))
+		return
+	}
+
+	if erro := repositorio.Deletar(publicacaoID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	
+	respostas.Json(w, http.StatusNoContent, nil)
+}
+
+func CurtirPublicacao(w http.ResponseWriter, r *http.Request) {
+	usuarioID, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	parametro := mux.Vars(r)
+	publicacaoID, erro := strconv.ParseUint(parametro["publicacaoId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDePubicacoes(db)
+
+	publicacaoSalva, erro := repositorio.BuscarPorId(publicacaoID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	if publicacaoSalva.ID == 0 {
+		respostas.Erro(w, http.StatusBadRequest, errors.New("publicação não existe"))
+		return
+	}
+
+	if erro := repositorio.Curtir(publicacaoID, usuarioID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.Json(w, http.StatusNoContent, nil)
+}
+
+func DeixarCurtirPublicacao(w http.ResponseWriter, r *http.Request) {
+	tokenID, erro := autenticacao.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	parametro := mux.Vars(r)
+	publicacaoID, erro := strconv.ParseUint(parametro["publicacaoId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := db.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDePubicacoes(db)
+	if erro := repositorio.DeixarCurtir(publicacaoID, tokenID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.Json(w, http.StatusNoContent, nil)
 }
