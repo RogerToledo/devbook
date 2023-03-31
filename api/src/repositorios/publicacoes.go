@@ -183,7 +183,7 @@ func (repositorio *publicacoes) Curtir(publicacaoID, usuarioID uint64) error {
 		return erro
 	}
 
-	if erro := repositorio.altualizarCurtidasPublicacao(publicacaoID); erro != nil {
+	if erro := repositorio.atualizarCurtidasPublicacao(publicacaoID); erro != nil {
 		return erro
 	}
 
@@ -204,7 +204,7 @@ func (repositorio *publicacoes) DeixarCurtir(publicaoID, usuarioID uint64) error
 		return erro
 	}
 
-	if erro := repositorio.altualizarCurtidasPublicacao(publicaoID); erro != nil {
+	if erro := repositorio.atualizarCurtidasPublicacao(publicaoID); erro != nil {
 		return erro
 	}
 
@@ -232,7 +232,7 @@ func (repositorio *publicacoes) contarCurtidas(publicacaoID uint64) (uint64, err
 	return curtidas, nil 
 }
 
-func (repositorio *publicacoes) altualizarCurtidasPublicacao(publicacaoID uint64) error {
+func (repositorio *publicacoes) atualizarCurtidasPublicacao(publicacaoID uint64) error {
 	curtidas, erro := repositorio.contarCurtidas(publicacaoID)
 	if erro != nil {
 		return erro
