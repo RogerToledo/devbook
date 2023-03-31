@@ -35,3 +35,11 @@ CREATE TABLE publicacoes (
   REFERENCES usuarios(id)
   ON DELETE CASCADE
 ) ENGINE=INNODB;
+
+CREATE TABLE curtidas (
+  publicacoes_id int NOT NULL,
+  usuario_id int NOT NULL,
+  PRIMARY KEY (publicacoes_id,usuario_id),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios (id),
+  FOREIGN KEY (publicacoes_id) REFERENCES publicacoes (id) ON DELETE CASCADE
+) ENGINE=InnoDB;
