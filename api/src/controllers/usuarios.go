@@ -102,7 +102,7 @@ func BuscarUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if usuario.ID == 0 && usuario.Nome == "" {
-		respostas.Erro(w, http.StatusOK, errors.New("Usuario não encontrado"))
+		respostas.Erro(w, http.StatusOK, errors.New("usuario não encontrado"))
 		return
 	}
 
