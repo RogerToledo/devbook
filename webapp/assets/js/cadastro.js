@@ -6,6 +6,7 @@ function criarUsuario(evento) {
 
     if ($('#senha').val() != $('#confirmaSenha').val() ) {
         alert("As senhas são diferentes!")
+        return
     }
 
     $.ajax({
@@ -17,5 +18,10 @@ function criarUsuario(evento) {
             email: $('#email').val(),
             senha: $('#senha').val()
         }
+    }).done(function() {
+        alert("Usuário cadastrado com sucesso!");
+    }).fail(function(erro) {
+        console.log(erro);
+        alert("Erro ao cadastrar usuário!")
     })
 }
