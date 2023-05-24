@@ -170,7 +170,8 @@ func (repositorio *publicacoes) Curtir(publicacaoID, usuarioID uint64) error {
 	}
 
 	if existe {
-		return errors.New("você já curtiu essa publicacao")
+		repositorio.DeixarCurtir(publicacaoID, usuarioID)
+		return nil
 	}
 	
 	ps, erro := repositorio.db.Prepare("insert into curtidas (publicacao_id, usuario_id) values (?, ?)")
