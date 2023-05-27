@@ -23,8 +23,12 @@ func JSON(w http.ResponseWriter, statusCode int, dados interface{}) {
 
 }
 
-func TratarStatusCodeErro(w http.ResponseWriter, r *http.Response) {
+func TratarStatusCodeErro(w http.ResponseWriter, r *http.Request, resp *http.Response) {
 	var erro ErroAPI
-	json.NewDecoder(r.Body).Decode(&erro)
-	JSON(w, r.StatusCode, erro)
+	json.NewDecoder(resp.Body).Decode(&erro)
+	if erro.Erro == "Token is expired" {
+		http.Redirect(w, r, "/login", 302)
+		return
+	}
+	JSON(w, resp.StatusCode, erro)
 }

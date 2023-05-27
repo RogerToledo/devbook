@@ -36,7 +36,7 @@ func Criar(w http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
-		respostas.TratarStatusCodeErro(w, response)
+		respostas.TratarStatusCodeErro(w, r, response)
 		return
 	}
 
@@ -73,7 +73,7 @@ func Atualizar(w http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
-		respostas.TratarStatusCodeErro(w, response)
+		respostas.TratarStatusCodeErro(w, r, response)
 		log.Printf("Erro TratarStatusCodeErro - %s", erro.Error())
 		return
 	}
@@ -98,7 +98,7 @@ func Deletar(w http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
-		respostas.TratarStatusCodeErro(w, response)
+		respostas.TratarStatusCodeErro(w, r, response)
 		return
 	}
 
@@ -122,7 +122,7 @@ func Curtir(w http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
-		respostas.TratarStatusCodeErro(w, response)
+		respostas.TratarStatusCodeErro(w, r, response)
 		return
 	}
 
