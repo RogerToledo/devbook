@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"webapp/src/config"
 	"webapp/src/cookies"
 	"webapp/src/modelos"
@@ -18,7 +19,7 @@ import (
 func CarregarTelaLogin(w http.ResponseWriter, r *http.Request) {
 	cookies, _ := cookies.Ler(r)
 	if cookies["token"] != "" {
-		http.Redirect(w, r, "/home", 302)
+		http.Redirect(w, r, "/home", http.StatusPermanentRedirect)
 		return
 	}
 
@@ -34,16 +35,19 @@ func CarregaPaginaPrincipal(w http.ResponseWriter, r *http.Request) {
 	response, erro := requisicoes.FazerRequisicaoAutenticacao(r, http.MethodGet, url, nil)
 	if erro != nil {
 		respostas.JSON(w, http.StatusInternalServerError, respostas.ErroAPI{Erro: erro.Error()})
+		return
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
-		respostas.TratarStatusCodeErro(w, response)
+		respostas.TratarStatusCodeErro(w, r, response)
+		return
 	}
 
 	var publicacoes []modelos.Publicacoes
 	if erro := json.NewDecoder(response.Body).Decode(&publicacoes); erro != nil {
 		respostas.JSON(w, http.StatusUnprocessableEntity, respostas.ErroAPI{Erro: erro.Error()})
+		return
 	}
 
 	cookie, _ := cookies.Ler(r)
@@ -75,7 +79,7 @@ func CarregaPaginaEdicao(w http.ResponseWriter, r *http.Request) {
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
-		respostas.TratarStatusCodeErro(w, response)
+		respostas.TratarStatusCodeErro(w, r, response)
 	}
 
 	var publicacao modelos.Publicacoes
@@ -85,4 +89,29 @@ func CarregaPaginaEdicao(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ExecutarTemplate(w, "atualizar-publicacao.html", publicacao)
+}
+
+func CarregaPaginaUsuarios(w http.ResponseWriter, r *http.Request) {
+	usuario := strings.ToLower(r.URL.Query().Get("usuario"))
+	url := fmt.Sprintf("%s/usuarios?usuario=%s", config.ApiUrl, usuario)
+
+	response, erro := requisicoes.FazerRequisicaoAutenticacao(r, http.MethodGet, url, nil)
+	if erro != nil {
+		respostas.JSON(w, http.StatusInternalServerError, respostas.ErroAPI{Erro: erro.Error()})
+		return
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode >= 400 {
+		respostas.TratarStatusCodeErro(w, r, response)
+		return
+	}
+
+	var usuarios []modelos.Usuario
+	if erro = json.NewDecoder(response.Body).Decode(&usuarios); erro != nil {
+		respostas.JSON(w, http.StatusUnprocessableEntity, respostas.ErroAPI{Erro: erro.Error()})
+		return
+	}
+
+	utils.ExecutarTemplate(w, "usuarios.html", usuarios)
 }
