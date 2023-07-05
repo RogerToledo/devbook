@@ -176,7 +176,7 @@ func (repositorio usuarios) Seguir(seguidorID, ID uint64) error {
 	}
 	defer ps.Close()
 
-	if _, erro := ps.Exec(seguidorID, ID); erro != nil {
+	if _, erro := ps.Exec(ID, seguidorID); erro != nil {
 		return erro
 	}
 
