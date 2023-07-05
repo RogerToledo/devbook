@@ -157,5 +157,10 @@ func BuscarPublicacao(canal chan<- []Publicacoes, usuarioID uint64, r *http.Requ
 		return
 	}
 
+	if publicacoes == nil {
+		canal <- make([]Publicacoes, 0)
+		return
+	}
+
 	canal <- publicacoes
 }
