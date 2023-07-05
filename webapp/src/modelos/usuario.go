@@ -111,6 +111,11 @@ func BuscarSeguidores(canal chan<- []Usuario, usuarioID uint64, r *http.Request)
 		return
 	}
 
+	if seguidores == nil {
+		canal <- make([]Usuario, 0)
+		return
+	}
+
 	canal <- seguidores
 }
 
@@ -126,6 +131,11 @@ func BuscarSeguindo(canal chan<- []Usuario, usuarioID uint64, r *http.Request) {
 	var seguindo []Usuario
 	if erro = json.NewDecoder(response.Body).Decode(&seguindo); erro != nil {
 		canal <- nil
+		return
+	}
+
+	if seguindo == nil {
+		canal <- make([]Usuario, 0)
 		return
 	}
 
