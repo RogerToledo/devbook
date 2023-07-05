@@ -199,8 +199,8 @@ func (repositorio usuarios) PararSeguirUsuario(seguidorID, ID uint64) error {
 
 func (repositorio usuarios) ListarSeguindoSeguidores(ID uint64, tipo string) ([]modelos.Usuario, error) {
 	var query string
-	seguidor := "select u.nome, u.nick from seguidores s inner join usuarios u on s.usuario_id = u.id where s.seguidor_id = ?"
-	seguindo := "select u.nome, u.nick from seguidores s inner join usuarios u on s.seguidor_id = u.id where s.usuario_id = ?"
+	seguidor := "select u.id, u.nome, u.nick from seguidores s inner join usuarios u on s.usuario_id = u.id where s.seguidor_id = ?"
+	seguindo := "select u.id, u.nome, u.nick from seguidores s inner join usuarios u on s.seguidor_id = u.id where s.usuario_id = ?"
 
 	if tipo == "listar-seguidores" {
 		query = seguidor
@@ -220,6 +220,7 @@ func (repositorio usuarios) ListarSeguindoSeguidores(ID uint64, tipo string) ([]
 		var usuario modelos.Usuario
 
 		if erro := linhas.Scan(
+			&usuario.ID,
 			&usuario.Nome,
 			&usuario.Nick,
 		); erro != nil {

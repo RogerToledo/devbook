@@ -102,8 +102,7 @@ function curtirPublicacao(evento) {
         url: `/publicacoes/curtir/${publicacaoID}`,
         method: "POST",
     }).done(function() {
-        window.location = "/home";
-        elementoClicado.addClass('text-danger')
+        window.location.reload(true);
     }).fail(function() {
         Swal.fire({
             title: 'Erro!',
