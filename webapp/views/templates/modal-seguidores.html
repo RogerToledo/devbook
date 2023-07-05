@@ -1,0 +1,20 @@
+{{ define "modal-seguidores" }}
+    <div class="modal fade" id="modal-seguidores" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Seguidores</h5>
+                </div>
+                <div class="modal-body">
+                    {{ range .Seguidores }}
+                        <a href="/usuarios/{{ .ID }}"> {{ .Nick }} <br/></a>
+                    {{ else }}
+                        <p class="text-muted text-center">
+                            Nenhum seguidor encontrado
+                        </p>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+{{ end }}
