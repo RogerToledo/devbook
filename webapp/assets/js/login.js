@@ -12,12 +12,11 @@ function fazerLogin(evento) {
         }
     }).done(function() {
         window.location = '/home';
-    }).fail(function(e) {
-        console.error(e)
+    }).fail(function() {
         Swal.fire({
-            title: 'Ooops...',
-            text: 'Usuário ou senha inválidos',
-            icon: 'warning'
-        });
-    });
+            title: 'Ops...',
+            text: 'Erro ao fazer login!',
+            icon: 'error'
+        })
+    })
 }
