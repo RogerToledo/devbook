@@ -13,6 +13,10 @@ function fazerLogin(evento) {
     }).done(function() {
         window.location = '/home';
     }).fail(function() {
-        alert('Usuário ou senha inválidos');
+        Swal.fire({
+            title: 'Ops...',
+            text: 'Erro ao fazer login!',
+            icon: 'error'
+        })
     })
 }

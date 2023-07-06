@@ -61,6 +61,8 @@ func CriarUsuario(w http.ResponseWriter, r *http.Request) {
 }
 
 func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
+	usuario := strings.ToLower(r.URL.Query().Get("usuario"))
+
 	db, erro := db.Conectar()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -68,13 +70,27 @@ func BuscarUsuarios(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repositorio := repositorios.NovoRepositorioDeUsuarios(db)
-	usuarios, erro := repositorio.Buscar()
-	if erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
-	}
 
-	respostas.Json(w, http.StatusOK, usuarios)
+	if usuario != "" {
+		usuarios, erro := repositorio.BuscarPorNomeNick(usuario)
+		if erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
+	
+		respostas.Json(w, http.StatusOK, usuarios)
+
+	} else {
+		usuarios, erro := repositorio.Buscar()
+		if erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
+	
+		respostas.Json(w, http.StatusOK, usuarios)
+	}
+	
+	
 
 }
 
